@@ -13,8 +13,9 @@
 </template>
 <script lang="ts">
 import { defineComponent, onUnmounted } from 'vue';
+import { useCreateDom } from '../../hooks/useCreateDom'
 export default defineComponent({
-    name: 'Loading',
+    name: 'LoadingComponent',
     props: {
         text: {
             type: String
@@ -24,12 +25,8 @@ export default defineComponent({
         }
     },
     setup() {
-        const node = document.createElement('div')
-        node.id = 'back'
-        document.body.appendChild(node)
-        onUnmounted(() => {
-            document.body.removeChild(node)
-        })
+        // 创建挂载的div
+        useCreateDom('back')
     }
 })
 </script>

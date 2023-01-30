@@ -14,7 +14,7 @@
 import { defineComponent, PropType, reactive, onMounted } from 'vue'
 import { validateEmitter, ClearEmitter } from './VaildateForm.vue'
 interface RuleProp {
-    type: 'required' | 'email' | 'range',
+    type: 'required' | 'email' | 'range' | 'custom',
     message?: string,
     min?: {
         message: string,
@@ -23,7 +23,8 @@ interface RuleProp {
     max?: {
         message: string,
         length: number
-    }
+    },
+    validator?: () => boolean
 }
 export type RulesProp = RuleProp[]
 export type TagType = 'input' | 'textarea'
@@ -56,6 +57,7 @@ export default defineComponent({
         const emailReg = /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)+$/
         const validateInput = () => {
             if (props.rules) {
+                // 所有 input 验证结果
                 const allPassed = props.rules.every((rule) => {
                     let passed = true;
                     switch (rule.type) {
@@ -76,6 +78,11 @@ export default defineComponent({
                                 passed = false
                                 inputRef.message = rule.max.message
                             }
+                            break;
+                        case 'custom':
+                            // 判断rule.validator是否存在，passed：boolean类型
+                            inputRef.message = (rule.message as string)
+                            passed = rule.validator ? rule.validator() : true
                             break;
                         default:
                             break;

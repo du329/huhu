@@ -9,19 +9,19 @@
                 </router-link>
             </li>
             <li class="list-inline-item">
-                <router-link to="/login">
+                <router-link to="/register">
                     <a href="#" class="btn btn-outline-light my-2">注册</a>
                 </router-link>
             </li>
         </ul>
         <ul v-else class="list-inline mb-0">
             <li class="list-inline-item">
-                <DropDown :title="`您好 ${user.name}`">
+                <DropDown :title="`您好 ${user.nickName}`">
                     <router-link :to="{ name: 'createPost' }">
                         <DropDownItem><a class="dropdown-item" href="#">新建文章</a></DropDownItem>
                     </router-link>
                     <DropDownItem disabled><a class="dropdown-item" href="#">编辑资料</a></DropDownItem>
-                    <DropDownItem><a class="dropdown-item" href="#">退出登录</a></DropDownItem>
+                    <DropDownItem @click.prevent="signOut"><a class="dropdown-item" href="#">退出登录</a></DropDownItem>
                 </DropDown>
             </li>
         </ul>
@@ -29,14 +29,9 @@
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
+import store, { UserProps } from '../../store'
 import DropDown from './DropDown.vue';
 import DropDownItem from './DropDownItem.vue';
-export interface UserProps {
-    isLogin: boolean;
-    id?: number;
-    name?: string;
-    columnId?: number;
-}
 
 export default defineComponent({
     name: 'GlobalHeader',
@@ -50,9 +45,13 @@ export default defineComponent({
             required: true
         }
     },
-    setup(props) {
+    setup() {
+        // 退出
+        const signOut = () => {
+            store.commit('signOut')
+        }
         return {
-
+            signOut
         }
     }
 })

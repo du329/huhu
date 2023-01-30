@@ -72,7 +72,7 @@ export default defineComponent({
         ]
         const onFormSubmit = (result: boolean) => {
             if (result) {
-                const columnId = store.state.user.columnId
+                const columnId = store.state.user.column
                 if (columnId) {
                     const newPost: PostProps = {
                         _id: new Date().getTime().toString(),

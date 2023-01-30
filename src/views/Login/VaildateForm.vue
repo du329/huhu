@@ -1,7 +1,7 @@
 <template>
     <form class="validate-form-container">
         <slot name="default"></slot>
-        <div class="submit-area" @click.prevent="submitForm">
+        <div class="submit-area d-inline-block" @click.prevent="submitForm">
             <slot name="submit">
                 <button type="submit" class="btn btn-primary">提交</button>
             </slot>
@@ -41,7 +41,7 @@ export default defineComponent({
             const result = ValidateFuncArr.map(func => func()).every(result => result)
             // 点击提交、触发、传递验证结果
             context.emit('form-submit', result)
-            clearForm()
+            // clearForm()
         }
 
         let ClearFuncArr: ClearFunc[] = []

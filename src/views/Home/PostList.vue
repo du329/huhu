@@ -26,8 +26,7 @@ export default defineComponent({
             required: true
         }
     },
-    setup(props) {
-    }
+    setup() {}
 })
 </script>
 <style scoped>

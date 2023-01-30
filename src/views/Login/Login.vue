@@ -2,7 +2,7 @@
     <div class="login-page">
         <VaildateForm @form-submit="onFormSubmit">
             <div class="mb-3">
-                <label class="form-label">邮箱地址:</label>
+                <label class="form-label">邮箱:</label>
                 <ValidataInput :rules="emailRules" v-model="emailValue" type="text" placeholder="请输入您的邮箱地址"
                     ref="emailRef" />
             </div>
@@ -14,24 +14,30 @@
             <template #submit></template>
         </VaildateForm>
     </div>
-
 </template>
 
 <script lang="ts">
 import { ref, defineComponent } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { createMessage } from '../../components/Message/createMessage';
+import { GlobalDataProps } from '../../store'
 import VaildateForm from './VaildateForm.vue';
 import ValidataInput, { RulesProp } from './ValidateInput.vue';
+// import { ElMessage } from 'element-plus'
+// import 'element-plus/es/components/message/style/css'
+
 export default defineComponent({
-    name: 'Login',
+    name: 'LoginPage',
     components: { VaildateForm, ValidataInput },
     setup() {
+        const route = useRoute() 
+        const email  = route.params.email as string
         const router = useRouter()
-        const store = useStore()
+        const store = useStore<GlobalDataProps>()
 
         const emailRef = ref<any>()
-        const emailValue = ref('')
+        const emailValue = ref(email || '')
         const emailRules: RulesProp = [
             { type: 'required', message: '请输入您的邮箱地址!' },
             { type: 'email', message: '请输入正确的邮箱格式!' }
@@ -48,11 +54,18 @@ export default defineComponent({
         const onFormSubmit = (result: boolean) => {
             if (result) {
                 const payload = { email: emailValue.value, password: passwordValue.value }
-                store.dispatch('login', payload).then(resp => console.log(resp))
-                router.push({ name: 'home' })
+                // 先登录获取token，再请求currentUser
+                store.dispatch('loginAndFetch', payload).then(() => {
+                    const { distroy } = createMessage('登录成功! 稍后跳转至首页!', 'success')
+                    setTimeout(() => {
+                        distroy() // 关闭message
+                        router.push({ name: 'home' })
+                    }, 2000)
+                }).catch(err => {
+                    store.state.error = { status: true, message: err }
+                })
             }
         }
-
         return {
             emailRef, emailValue, emailRules, passwordRef, passwordValue, passwordRules, onFormSubmit
         }
