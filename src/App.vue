@@ -24,6 +24,8 @@ const currentUser = computed(() => store.state.user)
 const isLoading = computed(() => store.state.loading)
 const error = computed(() => store.state.error)
 
+// token存在，刷新再次请求用户信息
+// bug： 路由跳转错误 (login、createPost)
 onMounted(() => {
   if (!currentUser.value.isLogin && store.state.token) {
     store.dispatch('fetchCurrentUser')

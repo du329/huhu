@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { computed } from 'vue'
 import Home from './views/Home/Home.vue'
 import Login from './views/Login/Login.vue'
 import Register from './views/Login/Register.vue'
@@ -21,7 +22,7 @@ const routes = [{
     //         next({ name: 'home' })
     //     }
     // }
-},{
+}, {
     path: '/register',
     name: 'register',
     component: Register,
@@ -40,9 +41,13 @@ const router = createRouter({
     history: routerHistory,
     routes
 })
+
+// token存在，刷新再次请求用户信息
+// bug： 路由跳转错误 (login、createPost)
 router.beforeEach((to, from, next) => {
-    // bug：通过url进入login时
-    if (to.meta.requiredLogin && !store.state.user.isLogin) {
+    const isLogin = computed(() => store.state.user.isLogin)
+
+    if (to.meta.requiredLogin && (!isLogin.value)) {
         next({ name: 'login' })
     } else if (to.meta.redireAlreadyLogin && store.state.user.isLogin) {
         next({ name: 'home' })

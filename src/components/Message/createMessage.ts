@@ -1,4 +1,4 @@
-import { createApp, h, render } from 'vue'
+import { h, render } from 'vue'
 import Message from "./Message.vue";
 export type MessageType = 'success' | 'error' | 'default'
 export const createMessage = (message: string, type: MessageType, timeout?: number) => {

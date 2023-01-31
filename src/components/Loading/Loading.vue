@@ -12,7 +12,7 @@
     </teleport>
 </template>
 <script lang="ts">
-import { defineComponent, onUnmounted } from 'vue';
+import { defineComponent } from 'vue';
 import { useCreateDom } from '../../hooks/useCreateDom'
 export default defineComponent({
     name: 'LoadingComponent',

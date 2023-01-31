@@ -1,8 +1,12 @@
 import { createStore, Commit } from 'vuex'
 import { get, post } from './utils/request'
-// import axios from 'axios'
 
-interface ImageProps {
+export interface ResponseType<Res = {}> {
+    code: number,
+    data: Res,
+    msg: string
+}
+export interface ImageProps {
     _id?: string,
     url?: string,
     createdAt?: string
@@ -135,7 +139,9 @@ const store = createStore<GlobalDataProps>({
         // 返回一个函数
         getColumnById: (state) => (columnId: string) => {
             return state.columnList.find(c => c._id === columnId)
-        }
+        },
+
+
     }
 })
 

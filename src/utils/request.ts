@@ -59,9 +59,9 @@ export const get = (url: string, params = {}): Promise<any> => {
     })
 }
 
-export const post = (url: string, data = {}): Promise<any> => {
+export const post = (url: string, data = {}, config = {}): Promise<any> => {
     return new Promise((resolve, reject) => {
-        instance.post(url, data).then((response) => {
+        instance.post(url, data, config).then((response) => {
             resolve(response.data)
         }, (err) => {
             reject(err)
