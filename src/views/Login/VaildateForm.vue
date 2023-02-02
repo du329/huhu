@@ -1,11 +1,14 @@
 <template>
     <form class="validate-form-container">
         <slot name="default"></slot>
-        <div class="submit-area d-inline-block" @click.prevent="submitForm">
-            <slot name="submit">
-                <button type="submit" class="btn btn-primary">提交</button>
-            </slot>
+        <div class="sumbit-loyout mb-5">
+            <div class="submit-area d-inline-block" @click.prevent="submitForm">
+                <slot name="submit">
+                    <button type="submit" class="btn btn-primary">提交</button>
+                </slot>
+            </div>
         </div>
+
     </form>
 </template>
 <script lang="ts">
@@ -72,3 +75,8 @@ export default defineComponent({
 
 })
 </script>
+<style>
+.sumbit-loyout {
+    text-align: center;
+}
+</style>

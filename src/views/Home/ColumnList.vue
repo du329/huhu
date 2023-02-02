@@ -19,7 +19,8 @@
 
 <script lang="ts">
 import { defineComponent, PropType, computed } from 'vue';
-import { ColumnProps } from '../../store'
+import { ColumnProps } from '../../store/store'
+import { handleAvatar } from '../../hleps'
 export default defineComponent({
     name: 'ColumnList',
     props: {
@@ -31,15 +32,8 @@ export default defineComponent({
     setup(props) {
         const columnList = computed(() => {
             return props.list.map((cloumn) => {
-                if (!cloumn.avatar) {
-                    const imgUrl = new URL('../../assets/avatar.jpg', import.meta.url).href
-                    cloumn.avatar = {
-                        url: imgUrl
-                    }
-                } else {
-                    // 阿里云 图片缩放
-                    cloumn.avatar.url = cloumn.avatar.url + '?x-oxx-process=image/resize,mpad,h_50,w_50'
-                }
+                // 处理图片
+                handleAvatar(cloumn, 50, 50)
                 return cloumn
             })
         })

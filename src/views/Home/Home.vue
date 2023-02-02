@@ -91,7 +91,7 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted } from 'vue'
 import { useStore } from 'vuex';
-import { GlobalDataProps } from '../../store'
+import { GlobalDataProps } from '../../store/store'
 import ColumnList from './ColumnList.vue';
 export default defineComponent({
     name: 'HomePage',
@@ -101,23 +101,23 @@ export default defineComponent({
         onMounted(() => {
             store.dispatch('fetchColumns')
         })
+      
         return {
-            columnList: computed(() => store.state.columnList)
+            columnList: computed(() => store.state.columnList),
         }
     }
 })
 </script>
 <style scoped>
-.home-page .row{
+.home-page .row {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.home-page .row svg{
+.home-page .row svg {
     width: 50%;
     height: 50%;
 }
-
 </style>

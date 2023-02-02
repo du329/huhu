@@ -1,19 +1,19 @@
 <template>
     <div class="file-uploaded">
-        <div class="file-upload-container d-inline-block" @click.prevent="handleRiggerCilck">
+        <div class="file-upload-container" v-bind="$attrs" @click.prevent="handleRiggerCilck">
             <slot v-if="fileStatus === 'loading'" name="loading">
-                <button class="btn btn-primary" disabled>正在上传...</button>
+                <!-- <button class="btn btn-primary" disabled>正在上传...</button> -->
             </slot>
-            <slot v-else-if="fileStatus === 'success'" name="success" :upLoadedData="upLoadedData">
-                <button class="btn btn-primary" disabled>上传成功</button>
+            <slot v-else-if="fileStatus === 'success'" name="uploaded" :upLoadedData="upLoadedData">
+                <!-- <button class="btn btn-primary" disabled>上传成功</button> -->
             </slot>
             <slot v-else name="default">
-                <button class="btn btn-primary">点击上传</button>
+                <!-- <button class="btn btn-primary">点击上传</button> -->
             </slot>
         </div>
-        <div class="file-upload-help" v-if="fileStatus === 'success'">
+        <div class="file-upload-help mb-3" v-if="fileStatus === 'success'">
             <button class="btn btn-primary" @click="handleRiggerCilck">点击重新上传</button>
-            <button class="btn btn-primary" @click="handleFileCancelUpLoad">点击取消上传</button>
+            <button class="btn btn-primary mx-3" @click="handleFileCancelUpLoad">点击取消上传</button>
         </div>
         <input type="file" name="file" class="file-input d-none" ref="fileInput" @change.prevent="handleFileChange" />
     </div>
@@ -36,22 +36,27 @@ export default defineComponent({
             type: Function as PropType<CheckFunction>
         }
     },
+    inheritAttrs: false,
     emits: ['file-uploaded', 'file-uploaded-error'],
     setup(props, content) {
         const fileInput = ref<null | HTMLInputElement>(null)
         const fileStatus = ref<UpLoadStatus>('ready')
         const upLoadedData = ref()
-        // btn代替file
-        const handleRiggerCilck = (e: Event) => {
-            console.log(e.target);
+        // 点击上传
+        const handleRiggerCilck = () => {
+            if(fileStatus.value === 'success'){
+                return
+            }
             if (fileInput.value) {
                 fileInput.value.click()
             }
         }
+        // 点击取消
         const handleFileCancelUpLoad = () => {
             fileStatus.value = 'ready'
         }
 
+        // 处理上传
         const handleFileChange = (e: Event) => {
             const target = e.target as HTMLInputElement
             // target.files: 类数组对象
@@ -62,6 +67,10 @@ export default defineComponent({
                     // 判断是否是JPG格式
                     const isJpg = props.beforeUpLoad(files[0])
                     if (!isJpg) {
+                        // 还原fileInput的值
+                        if (fileInput.value) {
+                            fileInput.value.value = ''
+                        }
                         return
                     }
                 }
@@ -97,3 +106,9 @@ export default defineComponent({
     }
 })
 </script>
+<style scoped>
+.file-upload-help{
+    display: flex;
+    justify-content: center;
+}
+</style>

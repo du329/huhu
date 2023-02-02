@@ -21,7 +21,7 @@ import { ref, defineComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { createMessage } from '../../components/Message/createMessage';
-import { GlobalDataProps } from '../../store'
+import { GlobalDataProps } from '../../store/store'
 import VaildateForm from './VaildateForm.vue';
 import ValidataInput, { RulesProp } from './ValidateInput.vue';
 // import { ElMessage } from 'element-plus'

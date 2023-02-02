@@ -17,7 +17,7 @@
 import { defineComponent, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
-import { GlobalDataProps } from '../../store'
+import { GlobalDataProps } from '../../store/store'
 import PostList from './PostList.vue';
 
 export default defineComponent({
@@ -34,7 +34,7 @@ export default defineComponent({
         })
         return {
             column: computed(() => store.getters.getColumnById(columnId)),
-            postList: computed(() => store.state.postList)
+            postList: computed(() => store.state.postList.loadedPostList)
         }
     }
 })

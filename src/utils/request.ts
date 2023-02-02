@@ -1,5 +1,5 @@
 import axios from 'axios'
-import store from '../store'
+import store from '../store/store'
 
 //axios实例
 const instance = axios.create({

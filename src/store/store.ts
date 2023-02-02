@@ -1,6 +1,7 @@
 import { createStore, Commit } from 'vuex'
-import { get, post } from './utils/request'
+import { get, post } from '../utils/request'
 
+// 返回数据
 export interface ResponseType<Res = {}> {
     code: number,
     data: Res,
@@ -9,6 +10,7 @@ export interface ResponseType<Res = {}> {
 export interface ImageProps {
     _id?: string,
     url?: string,
+    fitUrl?: string,
     createdAt?: string
 }
 // 专栏
@@ -20,12 +22,13 @@ export interface ColumnProps {
     author: string,
     createdAt: string
 }
-interface AuthorProps {
+// 作者
+export interface AuthorProps {
     _id: string,
     email: string,
     nickName: string,
     description: string,
-    avatar: string,
+    avatar: ImageProps,
     column: string,
     createdAt: string
 }
@@ -36,9 +39,17 @@ export interface PostProps {
     excerpt?: string,
     content: string,
     image?: ImageProps,
-    author?: AuthorProps,
+    author: AuthorProps,
     column: string,
     createdAt: string,
+    isHTML?: boolean
+}
+export interface createPostProps {
+    title: string,
+    content: string,
+    image?: ImageProps | string,
+    author: string,
+    column: string,
 }
 // user
 export interface UserProps {
@@ -54,12 +65,17 @@ export interface GlobalErrorProps {
     message?: string
 }
 // 全局data
+// interface CurrentProp{
+// }
 export interface GlobalDataProps {
     loading: boolean
     token: string
     user: UserProps
     columnList: ColumnProps[]
-    postList: PostProps[]
+    postList: {
+        currentPost: PostProps | object
+        loadedPostList: PostProps[]
+    }
     error: GlobalErrorProps
 }
 
@@ -69,10 +85,12 @@ const getAndCommit = async (url: string, mutationName: string, commit: Commit) =
     //     setTimeout(resovle, 3000)
     // })
     commit(mutationName, data)
+    return data
 }
 const postAndCommit = async (url: string, mutationName: string, commit: Commit, payload: any) => {
     const { data } = await post(url, payload)
     commit(mutationName, data)
+    return data
 }
 
 const store = createStore<GlobalDataProps>({
@@ -81,15 +99,21 @@ const store = createStore<GlobalDataProps>({
         token: localStorage.getItem('token') || '',
         user: { isLogin: false },
         columnList: [],
-        postList: [],
+        postList: { currentPost: {}, loadedPostList: [] },
         error: { status: false }
     },
     actions: {
         fetchColumns(content) {
-            getAndCommit('/columns', 'fetchColumns', content.commit)
+            return getAndCommit('/columns', 'fetchColumns', content.commit)
         },
         fetchPosts({ commit }, columnId) {
-            getAndCommit(`/columns/${columnId}/posts`, 'fetchPosts', commit)
+            return getAndCommit(`/columns/${columnId}/posts`, 'fetchPosts', commit)
+        },
+        fetchPost({ commit }, postId) {
+            return getAndCommit(`/posts/${postId}`, 'fetchPost', commit)
+        },
+        createPost({ commit }, payload) {
+            return postAndCommit('/posts', 'createPost', commit, payload)
         },
         login({ commit }, payload) {
             // 需要将Promise返回
@@ -103,7 +127,7 @@ const store = createStore<GlobalDataProps>({
             return dispatch('login', loginData).then(() => {
                 return dispatch('fetchCurrentUser')
             })
-        }
+        },
     },
     mutations: {
         login(state, rawData) {
@@ -119,18 +143,22 @@ const store = createStore<GlobalDataProps>({
             state.columnList = rawData.list
         },
         fetchPosts(state, rawData) {
-            state.postList = rawData.list
+            state.postList.loadedPostList = rawData.list
+        },
+        fetchPost(state, rawData) {
+            state.postList.currentPost = rawData
         },
         setLoading(state, status) {
             state.loading = status
         },
         createPost(state, payload) {
-            state.postList.push(payload)
+            state.postList.loadedPostList.push(payload)
         },
         setError(state, error: GlobalErrorProps) {
             state.error = error
         },
         signOut(state) {
+            state.token = ''
             localStorage.removeItem('token')
             state.user = { isLogin: false }
         }
@@ -141,7 +169,10 @@ const store = createStore<GlobalDataProps>({
             return state.columnList.find(c => c._id === columnId)
         },
 
-
+        getCurrentPost: (state) => (postId: string) => {
+            // return state.postList.find(p => p._id === postId)
+            return state.postList.currentPost
+        }
     }
 })
 

@@ -15,5 +15,8 @@ export default defineConfig({
     Components({
       resolvers: [ElementPlusResolver()],
     }),
-  ]
+  ],
+  server: {
+    hmr: true
+  }
 })

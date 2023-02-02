@@ -29,7 +29,7 @@
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import store, { UserProps } from '../../store'
+import store, { UserProps } from '../../store/store'
 import DropDown from './DropDown.vue';
 import DropDownItem from './DropDownItem.vue';
 
