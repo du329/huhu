@@ -4,7 +4,8 @@
             <slot v-if="fileStatus === 'loading'" name="loading">
                 <!-- <button class="btn btn-primary" disabled>正在上传...</button> -->
             </slot>
-            <slot v-else-if="fileStatus === 'success'" name="uploaded" :upLoadedData="upLoadedData">
+            <!-- 作用域插槽 -->
+            <slot v-else-if="fileStatus === 'success'" name="uploaded" :uploadedData="uploadedData">
                 <!-- <button class="btn btn-primary" disabled>上传成功</button> -->
             </slot>
             <slot v-else name="default">
@@ -13,17 +14,17 @@
         </div>
         <div class="file-upload-help mb-3" v-if="fileStatus === 'success'">
             <button class="btn btn-primary" @click="handleRiggerCilck">点击重新上传</button>
-            <button class="btn btn-primary mx-3" @click="handleFileCancelUpLoad">点击取消上传</button>
+            <button class="btn btn-primary mx-3" @click="handleFileCancelUpload">点击取消上传</button>
         </div>
         <input type="file" name="file" class="file-input d-none" ref="fileInput" @change.prevent="handleFileChange" />
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, PropType } from 'vue';
+import { defineComponent, ref, PropType, watch } from 'vue';
 import { post } from '../../utils/request'
 
-type UpLoadStatus = 'ready' | 'loading' | 'success' | 'error'
+type UploadStatus = 'ready' | 'loading' | 'success' | 'error'
 type CheckFunction = (file: File) => boolean
 export default defineComponent({
     name: 'UpLoader',
@@ -32,30 +33,35 @@ export default defineComponent({
             type: String,
             required: true
         },
-        beforeUpLoad: {
+        beforeUpload: {
             type: Function as PropType<CheckFunction>
+        },
+        uploadedImgData: {
+            type: Object
         }
     },
     inheritAttrs: false,
     emits: ['file-uploaded', 'file-uploaded-error'],
     setup(props, content) {
         const fileInput = ref<null | HTMLInputElement>(null)
-        const fileStatus = ref<UpLoadStatus>('ready')
-        const upLoadedData = ref()
+        const fileStatus = ref<UploadStatus>(props.uploadedImgData ? 'success' : 'ready')
+        // 作用域插槽
+        const uploadedData = ref(props.uploadedImgData)
+        // watch第一个参数：响应式对象,若不是则使用getter形式 
+        watch(() => props.uploadedImgData, (newValue) => {
+            fileStatus.value = 'success'
+            uploadedData.value = newValue
+        })
         // 点击上传
         const handleRiggerCilck = () => {
-            if(fileStatus.value === 'success'){
-                return
-            }
             if (fileInput.value) {
                 fileInput.value.click()
             }
         }
         // 点击取消
-        const handleFileCancelUpLoad = () => {
+        const handleFileCancelUpload = () => {
             fileStatus.value = 'ready'
         }
-
         // 处理上传
         const handleFileChange = (e: Event) => {
             const target = e.target as HTMLInputElement
@@ -63,9 +69,9 @@ export default defineComponent({
             if (target.files) {
                 const files = Array.from(target.files)
                 // 上传前
-                if (props.beforeUpLoad) {
+                if (props.beforeUpload) {
                     // 判断是否是JPG格式
-                    const isJpg = props.beforeUpLoad(files[0])
+                    const isJpg = props.beforeUpload(files[0])
                     if (!isJpg) {
                         // 还原fileInput的值
                         if (fileInput.value) {
@@ -79,13 +85,14 @@ export default defineComponent({
                 const formData = new FormData()
                 formData.append('file', files[0])
 
+                // 上传图片： 成功/失败/最终
                 post(props.action, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 }).then(resp => {
                     fileStatus.value = 'success'
-                    upLoadedData.value = resp.data
+                    uploadedData.value = resp.data
                     content.emit('file-uploaded', resp)
                 }).catch(err => {
                     fileStatus.value = 'error'
@@ -101,13 +108,13 @@ export default defineComponent({
         }
 
         return {
-            fileInput, fileStatus, handleRiggerCilck, handleFileCancelUpLoad, handleFileChange, upLoadedData,
+            fileInput, fileStatus, handleRiggerCilck, handleFileCancelUpload, handleFileChange, uploadedData,
         }
     }
 })
 </script>
 <style scoped>
-.file-upload-help{
+.file-upload-help {
     display: flex;
     justify-content: center;
 }

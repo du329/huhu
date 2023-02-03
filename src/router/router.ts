@@ -2,10 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home/Home.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Login/Register.vue'
-import ColumnDetail from '../views/Home/ColumnDetail.vue'
-import CreatePost from '../views/Home/CreatePost.vue'
+import ColumnDetail from '../views/Column/ColumnDetail.vue'
+import CreatePost from '../views/Post/CreatePost.vue'
 import store from '../store/store'
-import PostDetail from '../views/Home/PostDetail.vue'
+import PostDetail from '../views/Post/PostDetail.vue'
 
 const routerHistory = createWebHistory()
 const routes = [{
@@ -32,7 +32,7 @@ const routes = [{
     name: 'columnDetail',
     component: ColumnDetail,
 }, {
-    path: '/postDetail',
+    path: '/postDetail/:postId',
     name: 'postDetail',
     component: PostDetail,
 },{

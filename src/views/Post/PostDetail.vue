@@ -10,40 +10,47 @@
                 <span class="text-muted col text-right font-italic">发表于：{{ currentPost.createdAt }}</span>
             </div>
             <div v-html="currentHTML"></div>
-            <!-- <div v-if="showEditArea" class="btn-group mt-5">
+            <div v-if="showEditArea" class="btn-group mt-5">
                 <router-link type="button" class="btn btn-success"
-                    :to="{ name: 'create', query: { id: currentPost._id } }">
+                    :to="{ name: 'createPost', query: { postId: currentPost._id } }">
                     编辑
                 </router-link>
                 <button type="button" class="btn btn-danger" @click.prevent="modalIsVisible = true">删除</button>
-            </div> -->
+            </div>
         </article>
+        <Modal title="删除文章" :visible="modalIsVisible" @modal-close="onModalClose" @modal-confirm="onModalConfirm">
+            <p>确认删除这篇文章吗?</p>
+        </Modal>
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import store, { PostProps, ImageProps } from '../../store/store'
+import { defineComponent, computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import store, { ResponseType, PostProps, ImageProps } from '../../store/store'
 import UserProfile from './UserProfile.vue';
-import MarkdownIt from 'markdown-it'
+import Modal from './Modal.vue';
+import { createMessage } from '../../components/Message/createMessage';
+import { marked } from 'marked'
 export default defineComponent({
     name: 'PostDetail',
-    components: { UserProfile },
+    components: { UserProfile, Modal },
     setup() {
         const route = useRoute()
+        const router = useRouter()
         const { postId } = route.params
-        const md = new MarkdownIt()
-
         onMounted(() => {
-            store.dispatch('fetchPost', postId)
+            // 需请求数据
+            if (postId) {
+                store.dispatch('fetchPost', postId)
+            }
         })
         const currentPost = computed<PostProps>(() => store.getters.getCurrentPost(postId))
 
         const currentHTML = computed(() => {
             if (currentPost.value && currentPost.value.content) {
                 const { isHTML, content } = currentPost.value
-                // 渲染markdown数据
-                return isHTML ? content : md.render(content)
+                // 渲染 markdown 数据
+                return isHTML ? content : marked.parse(content)
             } else {
                 return ''
             }
@@ -56,8 +63,30 @@ export default defineComponent({
                 return ''
             }
         })
+        const showEditArea = computed(() => {
+            const { isLogin, _id } = store.state.user
+            if (currentPost.value && currentPost.value.author && isLogin) {
+                return currentPost.value.author._id === _id
+            } else {
+                return false
+            }
+        })
+        // 确认框
+        const modalIsVisible = ref(false)
+        const onModalClose = () => {
+            modalIsVisible.value = false
+        }
+        const onModalConfirm = () => {
+            modalIsVisible.value = false
+            store.dispatch('deletePost', postId).then((rawData: ResponseType<PostProps>) => {
+                createMessage('文章删除成功!', 'success', 2000)
+                setTimeout(() => {
+                    router.push({ name: 'columnDetail', params: { id: rawData.data.column } })
+                }, 2000)
+            })
+        }
         return {
-            currentPost, currentHTML, currentImage
+            currentPost, currentHTML, currentImage, showEditArea, modalIsVisible, onModalClose, onModalConfirm
         }
     }
 })

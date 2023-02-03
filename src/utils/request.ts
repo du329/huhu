@@ -68,3 +68,27 @@ export const post = (url: string, data = {}, config = {}): Promise<any> => {
         })
     })
 }
+
+export const patch = (url: string, data = {}) => {
+    return new Promise((resolve, reject) => {
+        instance.patch(url,
+            data
+        ).then((response) => {
+            resolve(response.data)
+        }, (err) => {
+            reject(err);
+        })
+    })
+}
+
+export const del = (url: string, data = {}) => {
+    return new Promise((resolve, reject) => {
+        instance.delete(url,
+            data
+        ).then((response) => {
+            resolve(response.data)
+        }, (err) => {
+            reject(err);
+        })
+    })
+}

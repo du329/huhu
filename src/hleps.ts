@@ -49,7 +49,7 @@ export function handleAvatar(data: ColumnProps | AuthorProps, width: number, hei
         // 使用默认图片
         const { title } = data as ColumnProps
         data.avatar = {
-            fitUrl: new URL(title ? '../../assets/column.jpg' : '../../assets/avatar.jpg', import.meta.url).href
+            fitUrl: new URL(title ? './assets/column.jpg' : './assets/avatar.jpg', import.meta.url).href
         }
     }
 

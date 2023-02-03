@@ -20,6 +20,9 @@
                     <router-link :to="{ name: 'createPost' }">
                         <DropDownItem><a class="dropdown-item" href="#">新建文章</a></DropDownItem>
                     </router-link>
+                    <router-link :to="{ name: 'columnDetail', params: { id: '61946f24b558154f0392e94e' } }">
+                        <DropDownItem><a class="dropdown-item" href="#">我的专栏</a></DropDownItem>
+                    </router-link>
                     <DropDownItem disabled><a class="dropdown-item" href="#">编辑资料</a></DropDownItem>
                     <DropDownItem @click.prevent="signOut"><a class="dropdown-item" href="#">退出登录</a></DropDownItem>
                 </DropDown>

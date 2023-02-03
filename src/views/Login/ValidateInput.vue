@@ -1,9 +1,9 @@
 <template>
     <div class="validate-input-container">
         <input v-if="tag !== 'textarea'" v-bind="$attrs" :class="{ 'form-control': true, 'is-invalid': inputRef.error }"
-            v-model="inputRef.val" @input="updateValue" @blur="validateInput" autocomplete="off">
+            v-model="inputRef.val" @blur="validateInput" autocomplete="off">
         <textarea v-else v-bind="$attrs" :class="{ 'form-control': true, 'is-invalid': inputRef.error }"
-            v-model="inputRef.val" @input="updateValue" @blur="validateInput" autocomplete="off"></textarea>
+            v-model="inputRef.val" @blur="validateInput" autocomplete="off"></textarea>
         <div v-if="inputRef.error" class="invalid-feedback">
             {{ inputRef.message }}
         </div>
@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, reactive, onMounted } from 'vue'
+import { defineComponent, PropType, reactive, onMounted, computed } from 'vue'
 import { validateEmitter, ClearEmitter } from './VaildateForm.vue'
 interface RuleProp {
     type: 'required' | 'email' | 'range' | 'custom',
@@ -42,17 +42,15 @@ export default defineComponent({
     inheritAttrs: false,
     setup(props, context) {
         const inputRef = reactive({
-            val: props.modelValue || '',
+            val: computed({
+                get: () => props.modelValue || '',
+                set: val => {
+                    context.emit('update:modelValue', val)
+                }
+            }),
             error: false,
             message: '',
         })
-        // 自定义组件的v-model
-        const updateValue = (e: Event) => {
-            const targetValue = (e.target as HTMLInputElement).value
-            inputRef.val = targetValue
-            /* ！！！！！！！！！！！！！！！！！！！！！*/
-            context.emit('update:modelValue', targetValue)
-        }
         // 验证表单
         const emailReg = /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)+$/
         const validateInput = () => {
@@ -108,7 +106,7 @@ export default defineComponent({
             ClearEmitter.emit('form-item-cleared', clearInputs)
         })
         return {
-            inputRef, updateValue, validateInput, clearInputs
+            inputRef, validateInput, clearInputs
         }
     }
 })
