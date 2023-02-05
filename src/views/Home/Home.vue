@@ -85,6 +85,12 @@
         </section>
         <h4 class="font-weight-bold text-center">发现精彩</h4>
         <ColumnList :list="columnList" />
+        <div class="text-center">
+            <button class="btn btn-outline-primary mt-2 mb-5 mx-auto btn-block w-25" @click="loadMorePage"
+                v-if="!isLastPage">
+                加载更多...
+            </button>
+        </div>
     </div>
 </template>
 
@@ -93,17 +99,25 @@ import { defineComponent, computed, onMounted } from 'vue'
 import { useStore } from 'vuex';
 import { GlobalDataProps } from '../../store/store'
 import ColumnList from './ColumnList.vue';
+import { useLoadMore } from '../../hooks/useLoadMore';
 export default defineComponent({
     name: 'HomePage',
     components: { ColumnList },
     setup() {
         const store = useStore<GlobalDataProps>()
+        const total = computed(() => store.state.columnList.total)
+        const currentPage = computed(() => store.state.columnList.currentPage)
         onMounted(() => {
-            store.dispatch('fetchColumns')
+            store.dispatch('fetchColumns', { pageSize: 3 })
         })
-      
+        const {
+            loadMorePage,
+            isLastPage
+        } = useLoadMore('fetchColumns', total, { currentPage: (currentPage.value ? currentPage.value + 1 : 2), pageSize: 3 })
+        // 判断有无初始：currentPage 无请求第一页 有则请求第二页
         return {
-            columnList: computed(() => store.state.columnList),
+            columnList: computed(() => store.getters.getColumnList),
+            loadMorePage, isLastPage
         }
     }
 })

@@ -152,9 +152,9 @@ export default defineComponent({
         }
 
         onMounted(() => {
-            if (editorRef.value) {
-                console.log(editorRef.value.getMDEInstance());
-            }
+            // if (editorRef.value) {
+            //     console.log(editorRef.value.getMDEInstance());
+            // }
             if (isEditMode) {
                 const currentPost = computed<PostProps>(() => store.getters.getCurrentPost(postId))
                 if (currentPost.value && postId) {

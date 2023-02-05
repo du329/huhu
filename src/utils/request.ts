@@ -72,7 +72,7 @@ export const post = (url: string, data = {}, config = {}): Promise<any> => {
 export const patch = (url: string, data = {}) => {
     return new Promise((resolve, reject) => {
         instance.patch(url,
-            data
+            data 
         ).then((response) => {
             resolve(response.data)
         }, (err) => {

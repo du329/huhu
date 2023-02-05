@@ -52,10 +52,12 @@ onMounted(() => {
                 // 获取当前编辑器中的值 并触发事件
                 const updatedValue = easyMDEInstance.value()
                 innerValue.value = updatedValue
+                // 触发事件，由父组件捕获
                 emit('update:modelValue', updatedValue)
                 emit('change', updatedValue)
             }
         })
+        // 
         easyMDEInstance.codemirror.on('blur', () => {
             if (easyMDEInstance) {
                 emit('blur')

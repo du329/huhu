@@ -45,12 +45,26 @@ export function handleAvatar(data: ColumnProps | AuthorProps, width: number, hei
     const { avatar } = data
     if (avatar && avatar.url) {
         generateFitUrl(avatar, width, height)
-    } else { 
+    } else {
         // 使用默认图片
         const { title } = data as ColumnProps
         data.avatar = {
             fitUrl: new URL(title ? './assets/column.jpg' : './assets/avatar.jpg', import.meta.url).href
         }
     }
+}
 
+// 数组 <==> 对象
+export const arrToObj = <T extends { _id?: string }>(arr: Array<T>) => {
+    // 叠加
+    return arr.reduce((prev, current) => {
+        if (current._id) {
+            prev[current._id] = current
+        }
+        return prev
+    }, {} as { [key: string]: T })
+}
+
+export const objToArr = <T>(obj: { [key: string]: T }) => {
+    return Object.keys(obj).map((key) => obj[key])
 }

@@ -1,6 +1,5 @@
 import { createStore, Commit } from 'vuex'
 import { get, post, patch, del } from '../utils/request'
-import { arrToObj, objToArr } from '../hleps'
 
 // 返回数据
 export interface ResponseType<Res = {}> {
@@ -65,52 +64,41 @@ export interface GlobalErrorProps {
     status: boolean
     message?: string
 }
-
-interface ListProps<P> {
-    [key: string]: P
-}
+// 全局data
+// interface CurrentProp{
+// }
 export interface GlobalDataProps {
     loading: boolean
     token: string
     user: UserProps
-    columnList: {
-        data: ListProps<ColumnProps>
-        total: number
-        currentPage: number
-    }
+    columnList: ColumnProps[]
     postList: {
-        data: ListProps<PostProps>
-        // loadedColumns: Array<string>
-        loadedColumns: ListProps<{ total: number, currentPage: number }>
+        currentPost: PostProps | object
+        loadedPostList: PostProps[]
     }
     error: GlobalErrorProps
 }
 
-const asyncAndCommit = async (url: string, mutationName: string, commit: Commit,
-    method: string = 'get', payload: any = {}, extraData?: string) => {
-    let rawData = null
+const asyncAndCommit = async (url: string, mutationName: string, commit: Commit, method: string = 'get', payload: any = {}) => {
+    let data = null
     switch (method) {
         case 'get':
-            rawData = await get(url)
+            data = await get(url)
             break;
         case 'post':
-            rawData = await post(url, payload)
+            data = await post(url, payload)
             break;
         case 'patch':
-            rawData = await patch(url, payload)
+            data = await patch(url, payload)
             break;
         case 'delete':
-            rawData = await del(url, payload)
+            data = await del(url, payload)
             break;
         default:
             break;
     }
-    if (extraData) {
-        commit(mutationName, { rawData, extraData })
-    } else {
-        commit(mutationName, rawData)
-    }
-    return rawData
+    commit(mutationName, data)
+    return data
 }
 
 const store = createStore<GlobalDataProps>({
@@ -118,32 +106,19 @@ const store = createStore<GlobalDataProps>({
         loading: false,
         token: localStorage.getItem('token') || '',
         user: { isLogin: false },
-        columnList: { data: {}, total: 0, currentPage: 0 },
-        postList: { data: {}, loadedColumns: {} },
+        columnList: [],
+        postList: { currentPost: {}, loadedPostList: [] },
         error: { status: false }
     },
     actions: {
-        fetchColumns({ state, commit }, params) {
-            const { currentPage = 1, pageSize = 6 } = params
-            if (state.columnList.currentPage < currentPage) {
-                return asyncAndCommit(`/columns?currentPage=${currentPage}&pageSize=${pageSize}`, 'fetchColumns', commit)
-            }
+        fetchColumns(content) {
+            return asyncAndCommit('/columns', 'fetchColumns', content.commit)
         },
-        fetchColumn({ state, commit }, columnId) {
-            if (!state.columnList.data[columnId]) {
-                return asyncAndCommit(`/columns/${columnId}`, 'fetchColumn', commit)
-            }
+        fetchPosts({ commit }, columnId) {
+            return asyncAndCommit(`/columns/${columnId}/posts`, 'fetchPosts', commit)
         },
-        fetchPosts({ commit }, params) {
-            const { currentPage, pageSize, columnId } = params
-            return asyncAndCommit(`/columns/${columnId}/posts?currentPage=${currentPage}&pageSize=${pageSize}`, 'fetchPosts', commit, 'get', {}, columnId)
-        },
-        fetchPost({ state, commit }, postId) {
-            const currentPost = state.postList.data[postId]
-            // postList中post无content
-            if (!currentPost || !currentPost.content) {
-                return asyncAndCommit(`/posts/${postId}`, 'fetchPost', commit)
-            }
+        fetchPost({ commit }, postId) {
+            return asyncAndCommit(`/posts/${postId}`, 'fetchPost', commit)
         },
         createPost({ commit }, payload) {
             return asyncAndCommit('/posts', 'createPost', commit, 'post', payload)
@@ -175,37 +150,36 @@ const store = createStore<GlobalDataProps>({
             localStorage.setItem('token', token)
             // axios.defaults.headers.common.Authorization = `Bearer ${token}`
         },
-        fetchCurrentUser(state, { data }) {
-            state.user = { isLogin: true, ...data }
+        fetchCurrentUser(state, rawData) {
+            state.user = { isLogin: true, ...rawData.data }
         },
-        fetchColumns(state, { data }) {
-            const { list, count, currentPage } = data
-            state.columnList = {
-                data: { ...state.columnList.data, ...arrToObj(list) },
-                total: count,
-                currentPage: currentPage * 1
-            }
+        fetchColumns(state, rawData) {
+            state.columnList = rawData.data.list
         },
-        fetchColumn(state, { data }) {
-            state.columnList.data[data._id] = data
+        fetchPosts(state, rawData) {
+            state.postList.loadedPostList = rawData.data.list
         },
-        fetchPosts(state, { rawData: { data }, extraData }) {
-            const { count, list, currentPage } = data
-            state.postList.data = { ...state.postList.data, ...arrToObj(list) }
-            state.postList.loadedColumns[extraData] = { total: count, currentPage }
-        },
-        fetchPost(state, { data }) {
-            state.postList.data[data._id] = data
+        fetchPost(state, rawData) {
+            state.postList.currentPost = rawData.data
         },
         // 替换数据
         updatePost(state, { data }) {
-            state.postList.data[data._id] = data
+            state.postList.currentPost = data
+            state.postList.loadedPostList = state.postList.loadedPostList.map(post => {
+                if (post._id === data._id) {
+                    return data
+                } else {
+                    return post
+                }
+            })
         },
         createPost(state, { data }) {
-            state.postList.data[data._id] = data
+            state.postList.loadedPostList.push(data)
         },
-        deletePost(state, { data }) {
-            delete state.postList.data[data._id]
+        deletePost(state, rawData) {
+            state.postList.loadedPostList = state.postList.loadedPostList.filter(post => {
+                return post._id !== rawData.data._id
+            })
         },
         setLoading(state, status) {
             state.loading = status
@@ -221,24 +195,14 @@ const store = createStore<GlobalDataProps>({
     },
     getters: {
         // 返回一个函数
-        getColumnList: (state) => {
-            return objToArr(state.columnList.data)
+        getColumnById: (state) => (columnId: string) => {
+            return state.columnList.find(c => c._id === columnId)
         },
 
-        getCurrentColumn: (state) => (columnId: string) => {
-            return state.columnList.data[columnId]
-        },
-
-        getPostList: (state) => (columnId: string) => {
-            return objToArr(state.postList.data).filter((post) => {
-                return post.column === columnId
-            })
-        },
-
-        getCurrentPost: (state) => (postId: string) => {
-            // return state.postList.find(p => p._id === postId)
-            return state.postList.data[postId]
-        }
+        // getCurrentPost: (state) => (postId: string) => {
+        //     // return state.postList.find(p => p._id === postId)
+        //     return state.postList.currentPost
+        // }
     }
 })
 
